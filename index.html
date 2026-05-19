@@ -1,0 +1,1617 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2299.77">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; min-height: 15.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="ru"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1">&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"&gt;</p>
+<p class="p1">&lt;title&gt;Точка сборки — самодиагностика&lt;/title&gt;</p>
+<p class="p1">&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;</p>
+<p class="p1">&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"&gt;</p>
+<p class="p1">&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1">&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>:root {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--bg: #F4EFE6;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--bg-soft: #EDE6D8;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--paper: #FAF6EE;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--ink: #2B2620;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--ink-soft: #4A413A;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--ink-muted: #877E72;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--accent: #8B6F47;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--accent-deep: #5C4A33;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--line: #C9BFAE;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--line-soft: #DDD3C0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>--shadow: 0 1px 2px rgba(43, 38, 32, 0.04), 0 8px 24px rgba(43, 38, 32, 0.06);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>html, body {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--bg);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.7;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>-webkit-font-smoothing: antialiased;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>min-height: 100vh;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background-image:</p>
+<p class="p1"><span class="Apple-converted-space">      </span>radial-gradient(at 20% 10%, rgba(139, 111, 71, 0.05) 0px, transparent 50%),</p>
+<p class="p1"><span class="Apple-converted-space">      </span>radial-gradient(at 80% 90%, rgba(92, 74, 51, 0.04) 0px, transparent 50%);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background-attachment: fixed;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>body::before {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>content: "";</p>
+<p class="p1"><span class="Apple-converted-space">    </span>position: fixed;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>inset: 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>pointer-events: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>z-index: 1;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>opacity: 0.4;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.44 0 0 0 0 0.28 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.container {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>position: relative;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>z-index: 2;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>max-width: 720px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin: 0 auto;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 80px 40px 120px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>min-height: 100vh;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Header / Progress */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.header {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>position: fixed;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>top: 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>left: 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>right: 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: rgba(244, 239, 230, 0.92);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>backdrop-filter: blur(12px);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>-webkit-backdrop-filter: blur(12px);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-bottom: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>z-index: 100;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 18px 40px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>gap: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.header__logo {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 18px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.02em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>white-space: nowrap;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.header__progress {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>flex: 1;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>gap: 14px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>max-width: 320px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.progress-bar {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>flex: 1;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>height: 1px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>position: relative;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>overflow: hidden;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.progress-bar__fill {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>position: absolute;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>inset: 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transform-origin: left;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transform: scaleX(0);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.progress-text {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 14px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>white-space: nowrap;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>min-width: 60px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-align: right;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.header.hidden { opacity: 0; pointer-events: none; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Screens */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.screen {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>animation: fadeIn 0.7s ease-out;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.screen.active { display: block; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>@keyframes fadeIn {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>from { opacity: 0; transform: translateY(12px); }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>to { opacity: 1; transform: translateY(0); }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Intro */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__mark {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 14px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.4em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 48px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__title {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: clamp(48px, 8vw, 84px);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.02;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: -0.02em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__title em {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent-deep);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__subtitle {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.4;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 64px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>max-width: 480px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__divider {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>width: 40px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>height: 1px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin: 56px 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__body p {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 17px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.8;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>max-width: 560px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__meta {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-top: 64px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding-top: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-top: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: grid;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));</p>
+<p class="p1"><span class="Apple-converted-space">    </span>gap: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__meta-item .label {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 13px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.08em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: block;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.intro__meta-item .value {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Questions */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.question__number {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 14px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.3em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.question__axis {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 15px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.15em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.question__text {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: clamp(28px, 4.5vw, 38px);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.25;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: -0.01em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 12px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.question__hint {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 17px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 56px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>max-width: 540px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.5;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Options */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 64px; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.option {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--paper);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 22px 26px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>align-items: flex-start;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>gap: 18px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.55;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-align: left;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: inherit;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>width: 100%;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 2px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.option:hover {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--bg-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transform: translateX(4px);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.option.selected {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--bg-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.option__letter {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 18px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>flex-shrink: 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>min-width: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.option.selected .option__letter { color: var(--accent-deep); font-weight: 500; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Scale */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 64px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--paper);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 40px 32px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 2px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__value {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 72px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent-deep);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__caption {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>min-height: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transition: opacity 0.3s;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__slider {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>-webkit-appearance: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>appearance: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>width: 100%;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>height: 2px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--line);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>outline: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__slider::-webkit-slider-thumb {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>-webkit-appearance: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>appearance: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>width: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>height: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 50%;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border: 4px solid var(--bg);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>box-shadow: 0 0 0 1px var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transition: transform 0.2s;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__slider::-webkit-slider-thumb:hover { transform: scale(1.15); }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__slider::-moz-range-thumb {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>width: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>height: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 50%;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border: 4px solid var(--bg);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>box-shadow: 0 0 0 1px var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__labels {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 14px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__labels span:first-child { text-align: left; max-width: 45%; }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.scale__labels span:last-child { text-align: right; max-width: 45%; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Textarea */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.textfield {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 64px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>position: relative;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.textfield__input {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>width: 100%;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>min-height: 160px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--paper);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 24px 26px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 19px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.6;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>resize: vertical;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transition: border-color 0.3s;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 2px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.textfield__input:focus {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>outline: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.textfield__input::placeholder {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>opacity: 0.6;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.textfield__counter {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 13px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-top: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-align: right;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Buttons */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.nav {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>gap: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-top: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.btn {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--bg);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border: 1px solid var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 16px 36px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Inter', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 14px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 500;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.12em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 2px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.btn:hover:not(:disabled) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--accent-deep);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-color: var(--accent-deep);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transform: translateY(-1px);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.btn:disabled {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>opacity: 0.3;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>cursor: not-allowed;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.btn--ghost {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: transparent;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-color: transparent;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 16px 24px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.btn--ghost:hover:not(:disabled) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: transparent;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transform: none;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.btn--large {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 20px 48px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 15px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Processing */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.processing {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 120px 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.processing__title {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.processing__dots {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: inline-flex;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>gap: 10px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.processing__dots span {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>width: 6px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>height: 6px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 50%;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>animation: dot 1.4s infinite ease-in-out both;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.processing__dots span:nth-child(1) { animation-delay: -0.32s; }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.processing__dots span:nth-child(2) { animation-delay: -0.16s; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>@keyframes dot {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>0%, 80%, 100% { transform: scale(0); opacity: 0.3; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>40% { transform: scale(1); opacity: 1; }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.processing__line {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-top: 48px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 17px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>max-width: 400px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-left: auto;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-right: auto;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.5;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Report */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__header {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-align: left;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 80px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding-bottom: 48px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-bottom: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__mark {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 13px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.4em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__title {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: clamp(40px, 7vw, 64px);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.05;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: -0.02em;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__title em { font-style: italic; color: var(--accent-deep); }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__date {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__block {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 96px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>position: relative;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__block-number {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 13px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.4em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__block-title {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: clamp(28px, 5vw, 40px);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.15;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 36px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: -0.01em;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__block-title em { font-style: italic; color: var(--accent-deep); }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__text {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 17px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.85;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__text strong {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 500;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__quote {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.5;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent-deep);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 24px 0 24px 32px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-left: 1px solid var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin: 32px 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.report__divider {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>width: 40px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>height: 1px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--line);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin: 64px auto;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Technique block */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.technique {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--paper);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 48px 40px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin: 40px 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 2px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>position: relative;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.technique__label {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 13px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.3em;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.technique__name {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.15;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Final CTA */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.final {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-top: 80px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding-top: 64px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-top: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.final__title {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 28px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 40px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.cta-list {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>flex-direction: column;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>gap: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 64px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.cta-card {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--paper);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-decoration: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: block;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-radius: 2px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.cta-card:hover {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>background: var(--bg-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>transform: translateY(-2px);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.cta-card__number {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 14px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-muted);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.cta-card__title {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-bottom: 12px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.cta-card__desc {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 15px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.6;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-soft);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.cta-card__arrow {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-top: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: inline-block;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 15px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Actions */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>.actions {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>gap: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>flex-wrap: wrap;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-top: 48px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.actions .btn { flex: 1; min-width: 200px; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.closing {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin-top: 96px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>padding-top: 48px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>border-top: 1px solid var(--line-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.closing__text {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-style: italic;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--ink-soft);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>line-height: 1.5;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>max-width: 480px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin: 0 auto 24px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>.closing__signature {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-family: 'Cormorant Garamond', serif;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>font-size: 18px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>color: var(--accent-deep);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>letter-spacing: 0.1em;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>/* Mobile */</p>
+<p class="p1"><span class="Apple-converted-space">  </span>@media (max-width: 640px) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.container { padding: 90px 24px 80px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.header { padding: 14px 20px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.header__logo { font-size: 14px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.header__progress { max-width: 180px; gap: 10px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.progress-text { font-size: 12px; min-width: 50px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.intro__meta { grid-template-columns: 1fr 1fr; gap: 20px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.scale { padding: 32px 20px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.scale__value { font-size: 56px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.technique { padding: 32px 24px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.technique__name { font-size: 26px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.nav { flex-direction: row; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn { padding: 14px 24px; font-size: 13px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn--large { padding: 16px 32px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.actions .btn { min-width: 100%; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.report__quote { font-size: 18px; padding-left: 20px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.option { padding: 18px 20px; font-size: 15px; }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>@media print {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.header, .nav, .actions, .final, body::before { display: none !important; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>body { background: white; color: black; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.container { padding: 20px; max-width: 100%; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.report__block { page-break-inside: avoid; margin-bottom: 48px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.technique { border: 1px solid #999; background: #fafafa; }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;!-- HEADER --&gt;</p>
+<p class="p1">&lt;header class="header hidden" id="header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="header__logo"&gt;Точка сборки&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="header__progress"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="progress-bar"&gt;&lt;div class="progress-bar__fill" id="progressFill"&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="progress-text" id="progressText"&gt;0 / 13&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1">&lt;/header&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;div class="container"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- INTRO --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;section class="screen active" id="screen-intro"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="intro__mark"&gt;Самодиагностика&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1 class="intro__title"&gt;Точка&lt;br&gt;&lt;em&gt;сборки&lt;/em&gt;&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p class="intro__subtitle"&gt;Тринадцать вопросов, после которых ты увидишь себя точнее, чем за последний год.&lt;/p&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="intro__divider"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="intro__body"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;p&gt;Это не тест на тип личности. Здесь нет «правильных» ответов и не будет архетипов. Я задам тебе тринадцать вопросов — по пяти осям, которые определяют, где ты сейчас.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;p&gt;На выходе ты получишь персональный разбор: какая у тебя точка сейчас, что тебя удерживает, куда тебя на самом деле тянет — и один точный шаг, который сдвинет конструкцию.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;p&gt;Отвечай так, как чувствуешь. Не так, как «правильно».&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="intro__meta"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="intro__meta-item"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;span class="label"&gt;Время&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;span class="value"&gt;7–10 минут&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="intro__meta-item"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;span class="label"&gt;Вопросов&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;span class="value"&gt;тринадцать&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="intro__meta-item"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;span class="label"&gt;Осей&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;span class="value"&gt;пять&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="nav" style="margin-top: 64px;"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;span&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn btn--large" onclick="startTest()"&gt;Начать&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- QUESTIONS WILL BE INJECTED HERE --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="questions-container"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- PROCESSING --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;section class="screen" id="screen-processing"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="processing"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h2 class="processing__title"&gt;Собираю твой разбор&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="processing__dots"&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;p class="processing__line"&gt;Точная диагностика требует тишины. Подожди несколько секунд.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- REPORT --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;section class="screen" id="screen-report"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="report-content"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;script&gt;</p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>QUESTIONS DATA</p>
+<p class="p1">============================================ */</p>
+<p class="p1">const QUESTIONS = [</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 1, axis: 'Энергия', type: 'choice',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Какое утверждение ближе всего к твоему состоянию последние два-три месяца?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: '',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>options: [</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'А', text: 'Я делаю много, но к концу дня чувствую опустошение, а не удовлетворение' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Б', text: 'Я мало что делаю, и это уже само по себе меня выматывает' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'В', text: 'Я делаю много и чувствую драйв, но внутри есть тревога, что это не то' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Г', text: 'Я нашёл свой ритм, но чувствую, что внутри начинается новое движение' }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>]</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 2, axis: 'Энергия', type: 'scale',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Насколько ты сейчас наполняешься от того, чем занимаешься?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: 'Один — выжимаю последние капли. Десять — деятельность сама меня питает.',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>labels: ['Выжимаю', 'Питает'],</p>
+<p class="p1"><span class="Apple-converted-space">    </span>captions: {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>1: 'Полное опустошение',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>2: 'Почти ничего не остаётся',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>3: 'Больше отдаю, чем получаю',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>4: 'Едва на нуле',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>5: 'Ровно по нулям',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>6: 'Чуть-чуть остаётся',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>7: 'Что-то наполняет',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>8: 'В целом питает',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>9: 'Чувствую драйв',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>10: 'Сама деятельность даёт силы'</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 3, axis: 'Энергия', type: 'text',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Назови одну вещь, после которой ты в последний раз чувствовал, что «вот это моё».',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: 'Это могло быть что угодно — разговор, работа, поездка, момент. Опиши коротко.',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>placeholder: 'Например: разговор с одним человеком, когда я почувствовал...',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>minLength: 10</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 4, axis: 'Опора', type: 'choice',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'На что ты сейчас опираешься в принятии решений?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: 'Выбери то, что преобладает.',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>options: [</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'А', text: 'На логику и анализ — взвешиваю плюсы и минусы' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Б', text: 'На мнение близких, партнёра, референтных людей' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'В', text: 'На внутреннее ощущение — «как чувствуется»' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Г', text: 'Я в основном не принимаю решений — события происходят сами' }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>]</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 5, axis: 'Опора', type: 'scale',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Насколько ты сейчас доверяешь своим внутренним сигналам?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: 'Желаниям, нежеланиям, интуиции.',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>labels: ['Сомневаюсь', 'Слышу ясно'],</p>
+<p class="p1"><span class="Apple-converted-space">    </span>captions: {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>1: 'Не слышу себя совсем',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>2: 'Постоянно перепроверяю',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>3: 'Чаще не доверяю',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>4: 'Сомнения сильнее сигналов',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>5: 'Пятьдесят на пятьдесят',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>6: 'Иногда слышу',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>7: 'Чаще доверяю',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>8: 'Слышу довольно ясно',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>9: 'Почти всегда иду за этим',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>10: 'Полный контакт с собой'</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 6, axis: 'Блок', type: 'choice',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Какая из этих фраз чаще всего звучит у тебя внутри?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: '',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>options: [</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'А', text: 'Я недостаточно готов — у меня ещё не хватает чего-то, чтобы начать' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Б', text: 'А вдруг это не то — а если я ошибусь' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'В', text: 'Мне надо успеть — время уходит, я опаздываю' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Г', text: 'Я уже всё перепробовал — ничего не работает' }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>]</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 7, axis: 'Блок', type: 'text',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Закончи фразу одним предложением: «Я бы давно сделал ___, но ___»',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: 'Напиши именно так, как звучит внутри. Не редактируй.',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>placeholder: 'Я бы давно сделал... но...',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>minLength: 15</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 8, axis: 'Блок', type: 'choice',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Где в жизни ты замечаешь повторяющийся паттерн «я начинаю — и не довожу»?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: '',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>options: [</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'А', text: 'В рабочих проектах и карьере' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Б', text: 'В отношениях' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'В', text: 'В заботе о себе — здоровье, тело, режим' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Г', text: 'В творческих или личных инициативах' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Д', text: 'Не вижу такого паттерна' }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>]</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 9, axis: 'Движение', type: 'scale',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Если через год твоя жизнь сложилась идеально — насколько ясно ты видишь этот образ?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: '',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>labels: ['Полная мгла', 'Вижу детально'],</p>
+<p class="p1"><span class="Apple-converted-space">    </span>captions: {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>1: 'Не вижу образа совсем',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>2: 'Только смутное ощущение',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>3: 'Какие-то обрывки',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>4: 'Размытые фрагменты',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>5: 'Что-то проступает',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>6: 'Общие контуры видны',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>7: 'Картина складывается',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>8: 'Вижу довольно ясно',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>9: 'Детальный образ',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>10: 'Как будто уже там'</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 10, axis: 'Движение', type: 'choice',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Если убрать все «надо» и «должен» — что бы ты выбрал делать в ближайшие шесть месяцев?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: '',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>options: [</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'А', text: 'Делал бы примерно то же, что и сейчас — просто легче' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Б', text: 'Кардинально сменил бы деятельность, сферу или стиль жизни' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'В', text: 'Взял бы паузу и ничего не делал какое-то время' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Г', text: 'Сделал бы то, что давно откладываю, но боюсь' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Д', text: 'Не знаю — никогда не давал себе такого вопроса' }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>]</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 11, axis: 'Движение', type: 'text',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Какое одно решение, принятое прямо сейчас, изменило бы твою жизнь сильнее всего?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: 'Не обязательно знать, как его реализовать. Просто назови его.',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>placeholder: 'Если бы я прямо сейчас принял решение...',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>minLength: 15</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 12, axis: 'Готовность', type: 'choice',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'В каком состоянии ты подходишь к этому моменту жизни?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: '',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>options: [</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'А', text: 'Накапливаю информацию, наблюдаю — пока не время действовать' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Б', text: 'Готов действовать, но не понимаю в каком направлении' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'В', text: 'Действую, но чувствую, что иду не туда' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Г', text: 'Внутри идёт что-то новое, я в процессе перехода' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ letter: 'Д', text: 'Я в кризисе — старое не работает, нового пока нет' }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>]</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>{</p>
+<p class="p1"><span class="Apple-converted-space">    </span>id: 13, axis: 'Готовность', type: 'scale',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: 'Насколько ты готов сделать конкретный шаг прямо сейчас?',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>hint: 'Даже маленький, но реальный.',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>labels: ['Пока думаю', 'Жду конкретики'],</p>
+<p class="p1"><span class="Apple-converted-space">    </span>captions: {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>1: 'Совсем не готов',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>2: 'Только начинаю думать',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>3: 'Размышляю в общем',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>4: 'Может быть, скоро',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>5: 'Не уверен',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>6: 'Склоняюсь к действию',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>7: 'В принципе готов',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>8: 'Готов, нужна точность',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>9: 'Жду конкретный шаг',</p>
+<p class="p1"><span class="Apple-converted-space">      </span>10: 'Дайте — пойду делать'</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">];</p>
+<p class="p2"><br></p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>STATE</p>
+<p class="p1">============================================ */</p>
+<p class="p1">let state = {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>answers: {},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>currentQuestion: 0</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const STORAGE_KEY = 'tochka_sborki_v1';</p>
+<p class="p2"><br></p>
+<p class="p1">function saveState() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function loadState() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const saved = localStorage.getItem(STORAGE_KEY);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (saved) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const parsed = JSON.parse(saved);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (parsed &amp;&amp; typeof parsed === 'object') state = parsed;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(e) {}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function resetState() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>state = { answers: {}, currentQuestion: 0 };</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>RENDER QUESTIONS</p>
+<p class="p1">============================================ */</p>
+<p class="p1">function renderQuestions() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const container = document.getElementById('questions-container');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>container.innerHTML = '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>QUESTIONS.forEach((q, idx) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const screen = document.createElement('section');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>screen.className = 'screen';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>screen.id = `screen-q${q.id}`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>let optionsHTML = '';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (q.type === 'choice') {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>optionsHTML = `&lt;div class="options"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>${q.options.map(opt =&gt; `</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;button class="option" data-letter="${opt.letter}" onclick="selectChoice(${q.id}, '${opt.letter}')"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span class="option__letter"&gt;${opt.letter}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span&gt;${opt.text}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>`).join('')}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>} else if (q.type === 'scale') {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>optionsHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="scale"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="scale__value" id="scale-value-${q.id}"&gt;5&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="scale__caption" id="scale-caption-${q.id}"&gt;${q.captions[5]}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;input type="range" min="1" max="10" value="5" class="scale__slider"</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>id="scale-input-${q.id}"</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>oninput="updateScale(${q.id}, this.value)"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="scale__labels"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span&gt;1 — ${q.labels[0]}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span&gt;${q.labels[1]} — 10&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>} else if (q.type === 'text') {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>optionsHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="textfield"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;textarea class="textfield__input"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>id="text-input-${q.id}"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>placeholder="${q.placeholder}"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>oninput="updateText(${q.id}, this.value)"&gt;&lt;/textarea&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="textfield__counter" id="text-counter-${q.id}"&gt;0 символов · минимум ${q.minLength}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>screen.innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="question__number"&gt;Вопрос ${q.id} из 13&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="question__axis"&gt;${q.axis}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h2 class="question__text"&gt;${q.text}&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>${q.hint ? `&lt;p class="question__hint"&gt;${q.hint}&lt;/p&gt;` : '&lt;div style="margin-bottom: 40px;"&gt;&lt;/div&gt;'}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>${optionsHTML}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="nav"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="btn btn--ghost" onclick="goPrev()"&gt;← Назад&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="btn" id="next-btn-${q.id}" onclick="goNext()" disabled&gt;Далее&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>container.appendChild(screen);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>});</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>ANSWER HANDLERS</p>
+<p class="p1">============================================ */</p>
+<p class="p1">function selectChoice(qId, letter) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>state.answers[qId] = letter;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const screen = document.getElementById(`screen-q${qId}`);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>screen.querySelectorAll('.option').forEach(o =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>o.classList.toggle('selected', o.dataset.letter === letter);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById(`next-btn-${qId}`).disabled = false;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>saveState();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function updateScale(qId, value) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>state.answers[qId] = parseInt(value);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const q = QUESTIONS.find(x =&gt; x.id === qId);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById(`scale-value-${qId}`).textContent = value;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById(`scale-caption-${qId}`).textContent = q.captions[value];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById(`next-btn-${qId}`).disabled = false;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>saveState();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function updateText(qId, value) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>state.answers[qId] = value.trim();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const q = QUESTIONS.find(x =&gt; x.id === qId);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const len = value.trim().length;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const counter = document.getElementById(`text-counter-${qId}`);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>counter.textContent = `${len} символов · минимум ${q.minLength}`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById(`next-btn-${qId}`).disabled = len &lt; q.minLength;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>saveState();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>NAVIGATION</p>
+<p class="p1">============================================ */</p>
+<p class="p1">function showScreen(id) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.querySelectorAll('.screen').forEach(s =&gt; s.classList.remove('active'));</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const el = document.getElementById(id);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (el) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>el.classList.add('active');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>window.scrollTo({ top: 0, behavior: 'smooth' });</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function updateProgress() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const total = QUESTIONS.length;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const current = state.currentQuestion;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const fill = (current / total) * 100;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('progressFill').style.transform = `scaleX(${fill / 100})`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('progressText').textContent = `${current} / ${total}`;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function startTest() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>state.currentQuestion = 1;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('header').classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showScreen('screen-q1');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>restoreAnswer(1);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>updateProgress();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>saveState();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function restoreAnswer(qId) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const ans = state.answers[qId];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (ans === undefined) return;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const q = QUESTIONS.find(x =&gt; x.id === qId);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (q.type === 'choice') {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const screen = document.getElementById(`screen-q${qId}`);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>screen.querySelectorAll('.option').forEach(o =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>o.classList.toggle('selected', o.dataset.letter === ans);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById(`next-btn-${qId}`).disabled = false;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} else if (q.type === 'scale') {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById(`scale-input-${qId}`).value = ans;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById(`scale-value-${qId}`).textContent = ans;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById(`scale-caption-${qId}`).textContent = q.captions[ans];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById(`next-btn-${qId}`).disabled = false;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} else if (q.type === 'text') {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById(`text-input-${qId}`).value = ans;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const len = ans.length;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById(`text-counter-${qId}`).textContent = `${len} символов · минимум ${q.minLength}`;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById(`next-btn-${qId}`).disabled = len &lt; q.minLength;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function goNext() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (state.currentQuestion &lt; QUESTIONS.length) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>state.currentQuestion++;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (state.currentQuestion &lt;= QUESTIONS.length) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>showScreen(`screen-q${state.currentQuestion}`);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>restoreAnswer(state.currentQuestion);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>updateProgress();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>saveState();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>finishTest();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// Если это был последний вопрос</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (state.currentQuestion &gt; QUESTIONS.length) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>finishTest();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function goPrev() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (state.currentQuestion &gt; 1) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>state.currentQuestion--;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showScreen(`screen-q${state.currentQuestion}`);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>restoreAnswer(state.currentQuestion);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>updateProgress();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>saveState();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>state.currentQuestion = 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('header').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showScreen('screen-intro');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>updateProgress();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>saveState();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// Override goNext for last question</p>
+<p class="p1">function checkLastQuestion() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>// Replace last "Next" button behavior</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const lastBtn = document.getElementById(`next-btn-${QUESTIONS.length}`);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (lastBtn) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>lastBtn.textContent = 'Получить разбор';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>lastBtn.onclick = finishTest;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function finishTest() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('header').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showScreen('screen-processing');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>setTimeout(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>renderReport();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showScreen('screen-report');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}, 3200);</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>REPORT LOGIC</p>
+<p class="p1">============================================ */</p>
+<p class="p1">function getPointType(a) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const q1 = a[1], q12 = a[12];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (q12 === 'Д') return 'crisis';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (q1 === 'Г' || q12 === 'Г') return 'transition';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (q1 === 'В') return 'anxious_drive';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (q1 === 'А' &amp;&amp; q12 === 'В') return 'wrong_direction';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (q1 === 'А') return 'hidden_burnout';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (q1 === 'Б') return 'quiet_stagnation';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>return 'hidden_burnout';</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function getBlockType(a) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>return { 'А': 'readiness', 'Б': 'guarantee', 'В': 'time_race', 'Г': 'helplessness' }[a[6]] || 'readiness';</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function getVector(a) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>return { 'А': 'depth', 'Б': 'transformation', 'В': 'pause', 'Г': 'unblock', 'Д': 'self_encounter' }[a[10]] || 'self_encounter';</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function getTechnique(point, block, readiness) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (readiness &gt;= 8) return 'questions';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (point === 'crisis' || point === 'transition') return 'future_image';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (point === 'anxious_drive') return 'letter';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (point === 'wrong_direction' &amp;&amp; block === 'guarantee') return 'refusal';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (point === 'hidden_burnout' || point === 'wrong_direction') return 'leak_map';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (point === 'quiet_stagnation') return 'silence';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>return 'leak_map';</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">const POINT_TEXTS = {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>hidden_burnout: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Скрытое выгорание',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Ты сейчас в состоянии, которое сложно опознать изнутри. Это не классическое выгорание, когда человек падает без сил. Это другое — ты функционируешь, ты делаешь много, со стороны может казаться, что у тебя всё неплохо. Но внутри идёт &lt;strong&gt;медленный отток энергии&lt;/strong&gt;, который ты сам не замечаешь, потому что привык.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Главная особенность твоей точки: ты тратишь энергию на то, &lt;strong&gt;что не питает обратно&lt;/strong&gt;. Не потому что эти дела плохие. А потому что они не совпадают с твоей конструкцией — твоим типом, твоим темпом, твоей природой.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Что важно понимать: отдых тебе сейчас не поможет. Можно съездить в отпуск, выспаться, заняться спортом — и через неделю вернуться в то же состояние. Потому что проблема не в количестве работы, а в её &lt;strong&gt;качестве совпадения с тобой&lt;/strong&gt;.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>quiet_stagnation: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Тихий застой',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Со стороны это выглядит как «у меня всё нормально». Внутри это ощущается как болото. Ты не двигаешься, и сам факт неподвижности уже тебя выматывает. Парадокс: ты мало что делаешь, и именно это отнимает у тебя силы.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Главное в твоей точке — это не лень и не слабость воли. Это &lt;strong&gt;накопленное ожидание&lt;/strong&gt;, которое ты сам не осознаёшь. Внутри тебя есть процесс, который зреет, но ты не даёшь ему пространства проявиться. Ты заполняешь время мелкими делами, отвлечениями, ритуалами — лишь бы не сидеть в тишине, где этот процесс мог бы стать слышимым.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Твоя задача сейчас — не «начать делать». Это типичная ошибка людей в твоей точке. Если ты сейчас начнёшь активно действовать, ты с большой вероятностью пойдёшь не в ту сторону. Твоя задача — &lt;strong&gt;создать условия для проявления того, что зреет&lt;/strong&gt;.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>anxious_drive: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Тревожный драйв',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Ты на ходу. Ты много делаешь. Со стороны это выглядит как успех. Но внутри есть подспудная тревога, которая не отпускает: &lt;strong&gt;«что-то не то»&lt;/strong&gt;. Ты не можешь точно сформулировать, что именно не так — потому что вроде всё работает, всё движется, есть результаты.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Главное в твоей точке: &lt;strong&gt;твоя активность опережает твоё понимание себя&lt;/strong&gt;. Ты двигаешься быстрее, чем успеваешь осмыслить, куда. Это часто бывает у людей с высокой энергетикой — они умеют запускать процессы, но не всегда умеют останавливаться, чтобы проверить вектор.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Опасность твоей точки в том, что инерция может унести тебя ещё на год-два по этому вектору. После чего «что-то не то» превратится в полноценный кризис, который придётся разгребать. Лучше остановиться сейчас.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>transition: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Переходная фаза',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Ты на пороге. Что-то одно в тебе уже завершилось — может быть, ещё не до конца оформилось это завершение, но внутри ты уже знаешь, что туда не вернёшься. И что-то новое уже начало проступать — пока в виде ощущений, импульсов, странных мыслей, которые сначала кажутся «не серьёзными».&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Главное в твоей точке: &lt;strong&gt;ты в зоне между&lt;/strong&gt;. Старое больше не питает, новое ещё не сложилось. Это пугающее состояние, но это самая ценная фаза для разворота. Здесь принимаются решения, которые определяют следующие пять-семь лет.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Ошибка, которую делают люди в твоей точке — &lt;strong&gt;торопиться&lt;/strong&gt;. Хочется быстрее «определиться», чтобы выйти из неопределённости. Не торопись. Переход требует своего времени. Лучше провести в нём полгода с ясностью, чем за месяц схватиться за первое попавшееся и потом ещё пять лет жить с чужим решением.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>wrong_direction: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Действие не в ту сторону',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Ты делаешь много. Ты вкладываешься. Но внутри есть &lt;strong&gt;растущее ощущение, что ты идёшь не по своей дороге&lt;/strong&gt;. Это может быть профессия, отношения, образ жизни — но что-то в твоей текущей конфигурации не совпадает с тобой настоящим.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Главное в твоей точке: ты, скорее всего, в какой-то момент принял решение — может, годы назад — которое было правильным &lt;strong&gt;для тогдашнего тебя&lt;/strong&gt;. Но ты вырос из него. А структура жизни вокруг продолжает воспроизводиться по старому решению.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Самое сложное здесь — не «найти новое направление». А &lt;strong&gt;признать, что текущее уже исчерпано&lt;/strong&gt;. Большинство людей в твоей точке годами оттягивают это признание, потому что оно болезненно. Чем дольше оттягиваешь, тем дороже потом разворот.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>crisis: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Кризис как окно',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Ты в кризисе. Старое больше не работает — ты уже это знаешь. Нового пока нет — ты тоже это знаешь. Это самая тяжёлая точка, но и самая &lt;strong&gt;продуктивная для пересборки&lt;/strong&gt;. Парадокс кризиса в том, что он одновременно разрушает и расчищает.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Главное в твоей точке: ты не должен сейчас «справиться». Ты должен &lt;strong&gt;пройти через&lt;/strong&gt;. Эти процессы устроены так, что их нельзя ускорить волей. Можно только идти и проживать.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;При этом кризис — это окно, которое не будет открыто долго. Через шесть-двенадцать месяцев ты выйдешь из него — и в зависимости от того, что ты в нём успеешь увидеть и сделать, твоя следующая фаза будет очень разной. Это не время бездействия. Это время &lt;strong&gt;точечной работы с собой&lt;/strong&gt;.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const BLOCK_TEXTS = {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>readiness: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Ожидание готовности',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Твой внутренний блок звучит как &lt;strong&gt;«я ещё не готов»&lt;/strong&gt;. Не хватает опыта, образования, денег, обстоятельств, ясности, поддержки, времени, сил. Список можно продолжать. Каждый пункт сам по себе звучит разумно. В сумме они образуют идеальную тюрьму.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Что важно понимать: &lt;strong&gt;готовности не существует как состояния, которое наступает&lt;/strong&gt;. Готовность — это побочный эффект действия. Ты не готовишься, а потом действуешь. Ты действуешь — и в действии становишься готовым.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Твоя задача — не «дождаться готовности». Твоя задача — &lt;strong&gt;научиться действовать в состоянии неполной готовности&lt;/strong&gt;. Это навык, и он тренируется только практикой малых шагов.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>guarantee: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Ожидание гарантии',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Твой блок — это &lt;strong&gt;страх ошибки&lt;/strong&gt;. Не просто страх неудачи — а страх сделать неправильный выбор. Внутри есть установка, что есть «правильный» путь и «неправильный», и нужно угадать первый. Поэтому ты бесконечно анализируешь, сравниваешь, взвешиваешь — но не действуешь.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Что важно понимать: &lt;strong&gt;гарантии нет ни в одном выборе&lt;/strong&gt;. И «правильного» пути тоже нет. Любой выбор будет одновременно правильным и неправильным — потому что у любого пути есть стоимость. Вопрос не в том, какой путь без потерь. Вопрос в том, какие потери ты готов нести.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Твоя задача — &lt;strong&gt;сместить фокус с поиска правильного выбора на готовность жить со своим выбором&lt;/strong&gt;. Это разное.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>time_race: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Гонка не со своим временем',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Твой блок — это &lt;strong&gt;тревога опаздывания&lt;/strong&gt;. Внутри звучит: «другие уже там, а я ещё нет», «у меня меньше времени, чем у других», «надо успеть». Эта тревога не даёт тебе остановиться и подумать — потому что любая остановка кажется потерей времени.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Что важно понимать: &lt;strong&gt;чужие сроки — это не твои сроки&lt;/strong&gt;. Каждый человек разворачивается по своему календарю. Когда ты сравниваешь свой темп с чужим, ты сравниваешь несравнимое.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Парадокс твоего блока: чем сильнее тревога опаздывания, тем больше ты делаешь поспешных действий, тем чаще промахиваешься, тем больше времени теряешь на исправление. Гонка &lt;strong&gt;отнимает у тебя время, а не экономит его&lt;/strong&gt;.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>helplessness: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Выученная беспомощность',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Твой блок — это &lt;strong&gt;накопленный опыт неудачных попыток&lt;/strong&gt;. Внутри звучит: «я уже пробовал, ничего не работает». И за этим стоит реальный опыт — ты действительно пробовал, и действительно не получалось. Поэтому импульс «не пробуй опять» — он защитный, он логичный.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Что важно понимать: &lt;strong&gt;предыдущие попытки не получались не потому, что ты не способен, а потому что ты пробовал не то и не так&lt;/strong&gt;. Обычно люди в твоей точке используют один и тот же способ снова и снова, ожидая разного результата.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Твоя задача сейчас — не «снова попробовать». Твоя задача — &lt;strong&gt;увидеть, что именно в твоих прошлых попытках было неточно&lt;/strong&gt;. Не в усилии, а в направлении.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const VECTOR_TEXTS = {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>depth: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Углубление в текущее',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Тебя тянет не наружу, а &lt;strong&gt;внутрь того, чем ты уже занимаешься&lt;/strong&gt;. Это важный сигнал. Многие в твоей точке думают, что им нужно «всё бросить и начать заново». Но твой внутренний вектор говорит другое: оставайся, но &lt;strong&gt;иди глубже&lt;/strong&gt;.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Углубление — это не делать «больше того же самого». Это смещение фокуса с количества на качество, с поверхности на структуру, с делания на мастерство. Через год такой работы ты можешь оказаться в принципиально другом качестве — при той же внешней рамке.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>transformation: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Полная трансформация',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Тебя тянет &lt;strong&gt;наружу, в новое&lt;/strong&gt;. Текущая рамка уже исчерпана — не потому что плоха, а потому что ты её перерос. Это сильный вектор, и он требует уважения.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;При этом трансформация — это не «всё бросить завтра». Это &lt;strong&gt;спланированный переход&lt;/strong&gt;, который может занять от шести месяцев до двух лет. Главное — не торопиться с разрушением старого, пока новое не оформилось.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>pause: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Пауза и пересборка',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Тебя тянет &lt;strong&gt;остановиться&lt;/strong&gt;. Это не лень и не выгорание в чистом виде. Это инстинктивная потребность в паузе, без которой невозможна следующая фаза.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Пауза в твоём случае — это не «ничего не делать». Это &lt;strong&gt;сознательная остановка ради сборки&lt;/strong&gt;. Время, когда ты не производишь — но интенсивно собираешь себя. Большинство людей боятся пауз, потому что в нашей культуре пауза приравнена к простою. На самом деле пауза — это самая продуктивная фаза цикла.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>unblock: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Снятие блока',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Тебя тянет к &lt;strong&gt;конкретному действию, которое ты давно откладываешь&lt;/strong&gt;. Ты знаешь, какое именно. И ты знаешь, почему откладываешь — там страх. И этот страх держит не одну эту тему, а целый слой твоей жизни.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Снятие блока — это не «преодолеть страх». Это &lt;strong&gt;сделать одно конкретное действие вопреки страху&lt;/strong&gt;. После этого действия открывается доступ к энергии, которая раньше уходила на удержание блока.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>self_encounter: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>title: 'Встреча с собой',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Тебя тянет к &lt;strong&gt;себе&lt;/strong&gt;. К контакту с собой, который ты давно не имел. Не к новой деятельности, не к новым отношениям, не к новому проекту — а к простой и редкой операции: &lt;strong&gt;остаться один на один с собой и услышать, что внутри&lt;/strong&gt;.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Это самый недооценённый вектор. В культуре активности «встреча с собой» звучит как роскошь или эзотерика. На самом деле это &lt;strong&gt;базовая операция&lt;/strong&gt;, без которой все остальные движения неточны.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">const TECHNIQUE_TEXTS = {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>leak_map: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>name: 'Карта утечки',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;В течение семи дней ты будешь вести двухколоночный список в заметках. Левая колонка — &lt;strong&gt;«Дало энергию»&lt;/strong&gt;. Правая — &lt;strong&gt;«Забрало энергию»&lt;/strong&gt;.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Записывай в течение часа после события, не вечером. Вечером ты уже не помнишь, что именно тебя выжимало. Записывай не «работа», а конкретно: «созвон с Х», «встреча с Y», «час над презентацией».&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Через семь дней ты увидишь паттерн, который не виден изнутри обычной жизни. Конкретные источники утечки и конкретные источники питания. &lt;strong&gt;Это не упражнение. Это диагностический инструмент&lt;/strong&gt;, который даст тебе данные для пересборки.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>silence: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>name: 'Двадцать минут тишины',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Двадцать минут в день, в одно и то же время, &lt;strong&gt;без телефона, без книги, без музыки, без задачи&lt;/strong&gt;. Просто сидишь. Лучше у окна. Лучше с чаем.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Это не медитация. Цель другая: создать пустоту, в которую может прийти то, что внутри уже зреет. Главное препятствие сейчас — информационный и деятельностный шум, который заглушает внутренние сигналы.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Минимум семь дней. Большинство сдаются на третий-четвёртый, потому что становится тревожно от тишины. Это и есть знак, что внутри что-то начинает прорываться. &lt;strong&gt;Не сбегай. Сиди.&lt;/strong&gt;&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>letter: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>name: 'Письмо неотправленное',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Сядь в одиночестве. Открой документ. Напиши письмо адресату — это может быть конкретный человек (родитель, бывший партнёр, ты сам в прошлом), либо «жизни», либо «той версии себя, которая принимала ключевые решения».&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Тема письма: &lt;strong&gt;«Вот что я делал не из себя, а из тебя/тебе угодного»&lt;/strong&gt;. Пиши без редактирования. Минимум тридцать минут. До тех пор, пока не упрёшься во фразу, которая прозвучит изнутри как «вот это правда».&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Письмо не нужно никому показывать. Его задача — &lt;strong&gt;отделить, что в твоей жизни — твоё, а что — заёмное&lt;/strong&gt;. Базовая операция перед любой пересборкой.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>refusal: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>name: 'Один отказ',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Найди в своей жизни &lt;strong&gt;одну конкретную договорённость или обязательство, которое ты несёшь по инерции&lt;/strong&gt; — и которое ты бы не выбрал, если бы выбирал сейчас.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Это не должно быть «всё бросить». Это должно быть одно конкретное «нет». Отказ от проекта. Отмена встречи. Разговор «больше не буду в этом участвовать». Главное — &lt;strong&gt;отказ из себя, без долгих извинений и оправданий&lt;/strong&gt;.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Цель — не убрать обязательство. Цель — проверить себе самому, что ты можешь говорить «нет» из своей оси. &lt;strong&gt;Базовый мускул&lt;/strong&gt;, без которого никакая пересборка невозможна.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>future_image: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>name: 'Образ из будущего',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Выдели час времени. Один. Сядь с блокнотом. Напиши вверху: &lt;strong&gt;«Я через два года. Утро среды»&lt;/strong&gt;.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Дальше пиши от первого лица в настоящем времени всё, что происходит в этот день. Не «я хочу», не «я планирую» — а «я просыпаюсь», «я еду», «я говорю». Очень детально. Где ты живёшь. С кем. Чем занят утром. Что чувствуешь, когда смотришь в окно. Минимум сорок минут.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Это упражнение не визуализирует цели. Оно достаёт &lt;strong&gt;уже существующий внутри тебя образ&lt;/strong&gt;, который ты не пускаешь в сознание. После упражнения у тебя на руках будет первый эскиз направления.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>questions: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>name: 'Сборка вопросов',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>text: `&lt;p&gt;Ты сейчас в редком состоянии: готов двигаться, но не хватает точности. Тебе не нужны общие практики — нужен &lt;strong&gt;точный навигатор&lt;/strong&gt;.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Возьми тридцать минут. Сядь с блокнотом. Напиши &lt;strong&gt;три конкретных вопроса&lt;/strong&gt;, ответы на которые сейчас изменили бы твою жизнь сильнее всего.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Не «как мне быть счастливым» — это не вопрос, это растерянность. А, например: «Стоит ли мне остаться в текущей профессии или это закрытая глава?» Или: «Какая моя сильная сторона, на которую я могу опереться следующие три года?»&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Когда сформулируешь — у тебя будет &lt;strong&gt;карта твоих реальных слепых зон&lt;/strong&gt;. Это и есть точки, с которыми работают на сессии.&lt;/p&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>RENDER REPORT</p>
+<p class="p1">============================================ */</p>
+<p class="p1">function renderReport() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const a = state.answers;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const point = getPointType(a);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const block = getBlockType(a);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const vector = getVector(a);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const readiness = a[13] || 5;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const technique = getTechnique(point, block, readiness);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const pointData = POINT_TEXTS[point];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const blockData = BLOCK_TEXTS[block];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const vectorData = VECTOR_TEXTS[vector];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const techData = TECHNIQUE_TEXTS[technique];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const quote7 = (a[7] || '').trim();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const quote3 = (a[3] || '').trim();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const quote11 = (a[11] || '').trim();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const today = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const html = `</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="report__header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="report__mark"&gt;Твой разбор&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h1 class="report__title"&gt;Точка&lt;br&gt;&lt;em&gt;сборки&lt;/em&gt;&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="report__date"&gt;${today}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;section class="report__block"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="report__block-number"&gt;01 — Где ты сейчас&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h2 class="report__block-title"&gt;${pointData.title}&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>${pointData.text}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>${quote3 ? `&lt;div class="report__quote"&gt;Ты написал: «${escapeHTML(quote3)}». Это сигнал. То, что после этого момента ты почувствовал «вот это моё» — твоя точка отсчёта. Ориентир, который не врёт.&lt;/div&gt;` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="report__divider"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;section class="report__block"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="report__block-number"&gt;02 — Что тебя удерживает&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h2 class="report__block-title"&gt;${blockData.title}&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>${blockData.text}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>${quote7 ? `&lt;div class="report__quote"&gt;Ты сформулировал это так: «${escapeHTML(quote7)}». В этой фразе — твоя главная конструкция блока. Перечитай её ещё раз медленно. Эта фраза удерживает тебя дольше, чем кажется.&lt;/div&gt;` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="report__divider"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;section class="report__block"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="report__block-number"&gt;03 — Куда тебя на самом деле тянет&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h2 class="report__block-title"&gt;${vectorData.title}&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>${vectorData.text}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>${quote11 ? `&lt;div class="report__quote"&gt;Ты назвал это решение: «${escapeHTML(quote11)}». Это и есть твой вектор. Не «когда-нибудь». А &lt;em&gt;прямо сейчас&lt;/em&gt; — то, что меняет конструкцию.&lt;/div&gt;` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="report__divider"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;section class="report__block"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="report__block-number"&gt;04 — Твой точный следующий шаг&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h2 class="report__block-title"&gt;Не «начать жить заново».&lt;br&gt;&lt;em&gt;Одно конкретное действие.&lt;/em&gt;&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;p class="report__text"&gt;Я не буду давать тебе план на полгода. Сейчас он не нужен. Сейчас нужен &lt;strong&gt;один точный инструмент&lt;/strong&gt;, который сдвинет твою точку. Под твою конфигурацию подходит вот это.&lt;/p&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="technique"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="technique__label"&gt;Техника&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;h3 class="technique__name"&gt;${techData.name}&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>${techData.text}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;p class="report__text"&gt;Дай этой технике семь дней. Не неделю «когда-нибудь», а &lt;strong&gt;конкретные семь дней с завтра&lt;/strong&gt;. Большинство людей читают, кивают и не делают. Будь среди тех, кто делает.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="report__divider"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;section class="report__block final"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="report__block-number"&gt;05 — Что дальше&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;h2 class="final__title"&gt;Этот разбор — диагностика, не лечение.&lt;br&gt;У тебя есть три варианта продолжения.&lt;/h2&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="cta-list"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="cta-card" onclick="window.scrollTo({top:0,behavior:'smooth'})"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="cta-card__number"&gt;Вариант первый&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;h3 class="cta-card__title"&gt;Сделай шаг сам&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;p class="cta-card__desc"&gt;Возьми технику из четвёртого блока. Дай ей семь дней. У многих этого хватает, чтобы сдвинуть точку. Серьёзно — попробуй.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;span class="cta-card__arrow"&gt;→ Начни завтра&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;a class="cta-card" href="https://t.me/viktor_wang target="_blank" rel="noopener"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="cta-card__number"&gt;Вариант второй&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;h3 class="cta-card__title"&gt;Задай вопрос лично&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;p class="cta-card__desc"&gt;Если после разбора у тебя сформулировался конкретный вопрос — напиши мне. Я отвечу. Реально, не ботом, не шаблоном.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;span class="cta-card__arrow"&gt;→ Telegram&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/a&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">           </span>&lt;a class="cta-card" href="https://t.me/viktor_wang” target="_blank" rel="noopener"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="cta-card__number"&gt;Вариант третий&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;h3 class="cta-card__title"&gt;Запишись на диагностику&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;p class="cta-card__desc"&gt;Тридцать минут один на один. Разберём твою конкретную точку глубже, чем это возможно в формате отчёта. После — ты увидишь, какой формат работы подходит именно тебе.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;span class="cta-card__arrow"&gt;→ Записаться&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/a&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="actions"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="btn btn--large" onclick="downloadPDF()"&gt;Скачать разбор&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="btn btn--ghost" onclick="restartTest()"&gt;Пройти заново&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="closing"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;p class="closing__text"&gt;«Точку не выбирают. Точку видят. А когда видят — её можно сдвинуть.»&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="closing__signature"&gt;— Точка сборки&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('report-content').innerHTML = html;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>UTILS</p>
+<p class="p1">============================================ */</p>
+<p class="p1">function escapeHTML(str) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>return String(str)</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.replace(/&amp;/g, '&amp;amp;')</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.replace(/&lt;/g, '&amp;lt;')</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.replace(/&gt;/g, '&amp;gt;')</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.replace(/"/g, '&amp;quot;')</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.replace(/'/g, '&amp;#039;');</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function downloadPDF() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const element = document.getElementById('report-content');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const opt = {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>margin: <span class="Apple-converted-space">      </span>[15, 15, 15, 15],</p>
+<p class="p1"><span class="Apple-converted-space">    </span>filename: <span class="Apple-converted-space">    </span>'tochka-sborki.pdf',</p>
+<p class="p1"><span class="Apple-converted-space">    </span>image:<span class="Apple-converted-space">        </span>{ type: 'jpeg', quality: 0.98 },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>html2canvas:<span class="Apple-converted-space">  </span>{ scale: 2, useCORS: true, backgroundColor: '#F4EFE6' },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>jsPDF:<span class="Apple-converted-space">        </span>{ unit: 'mm', format: 'a4', orientation: 'portrait' },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>pagebreak:<span class="Apple-converted-space">    </span>{ mode: ['avoid-all', 'css', 'legacy'] }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>};</p>
+<p class="p1"><span class="Apple-converted-space">  </span>html2pdf().set(opt).from(element).save();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function restartTest() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (confirm('Точно начать заново? Текущие ответы будут стёрты.')) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>resetState();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('header').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showScreen('screen-intro');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>updateProgress();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>// re-render to clear inputs</p>
+<p class="p1"><span class="Apple-converted-space">    </span>renderQuestions();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>bindLastQuestion();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function bindLastQuestion() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const lastBtn = document.getElementById(`next-btn-${QUESTIONS.length}`);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (lastBtn) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>lastBtn.textContent = 'Получить разбор';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>lastBtn.onclick = finishTest;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ============================================</p>
+<p class="p1"><span class="Apple-converted-space">   </span>INIT</p>
+<p class="p1">============================================ */</p>
+<p class="p1">document.addEventListener('DOMContentLoaded', function() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>loadState();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>renderQuestions();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>bindLastQuestion();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (state.currentQuestion &gt; 0 &amp;&amp; state.currentQuestion &lt;= QUESTIONS.length) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('header').classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showScreen(`screen-q${state.currentQuestion}`);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>restoreAnswer(state.currentQuestion);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>updateProgress();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showScreen('screen-intro');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">});</p>
+<p class="p2"><br></p>
+<p class="p1">/* Keyboard nav */</p>
+<p class="p1">document.addEventListener('keydown', function(e) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (e.key === 'Enter' &amp;&amp; state.currentQuestion &gt; 0 &amp;&amp; state.currentQuestion &lt;= QUESTIONS.length) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const btn = document.getElementById(`next-btn-${state.currentQuestion}`);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (btn &amp;&amp; !btn.disabled &amp;&amp; document.activeElement.tagName !== 'TEXTAREA') {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>btn.click();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">});</p>
+<p class="p1">&lt;/script&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
