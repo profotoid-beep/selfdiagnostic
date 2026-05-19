@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Точка сборки — самодиагностика</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg: #F4EFE6;
+  --bg-card: #FAF6EE;
+  --ink: #2B2620;
+  --ink-soft: #5C5249;
+  --ink-muted: #8B7F70;
+  --accent: #8B6F47;
+  --accent-deep: #5C4A30;
+  --line: #D9D0C0;
+  --line-soft: #E8E1D4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' /><feColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.15 0 0 0 0 0.13 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.6;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 60px 32px 120px;
+  position: relative;
+  z-index: 2;
+}
+
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: rgba(244, 239, 230, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line-soft);
+  padding: 16px 32px;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: opacity 0.4s;
+}
+.header.hidden { opacity: 0; pointer-events: none; }
+.header__logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-style: italic;
+  color: var(--ink);
+}
+.header__progress { display: flex; align-items: center; gap: 16px; }
+.progress-bar {
+  width: 120px; height: 2px;
+  background: var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.progress-bar__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 0.5s ease;
+}
+.progress-text {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.screen { display: none; animation: fadeIn 0.6s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.intro__mark {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 32px;
+}
+.intro__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(64px, 12vw, 120px);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+.intro__title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-deep);
+}
+.intro__subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--ink-soft);
+  margin-bottom: 48px;
+  max-width: 540px;
+}
+.intro__divider {
+  width: 60px;
+  height: 1px;
+  background: var(--accent);
+  margin: 48px 0;
+}
+.intro__body p {
+  font-size: 17px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+  line-height: 1.7;
+}
+.intro__meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+.intro__meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.intro__meta-item .label {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.intro__meta-item .value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-style: italic;
+}
+
+.question__number {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 12px;
+}
+.question__axis {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--accent);
+  margin-bottom: 32px;
+}
+.question__text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 4.5vw, 40px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.question__hint {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink-muted);
+  margin-bottom: 40px;
+}
+
+.options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 48px; }
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  width: 100%;
+}
+.option:hover {
+  border-color: var(--accent);
+  background: #fff;
+  transform: translateX(2px);
+}
+.option.selected {
+  border-color: var(--accent-deep);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(92, 74, 48, 0.08);
+}
+.option__letter {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: var(--accent);
+  min-width: 24px;
+  line-height: 1;
+  margin-top: 2px;
+}
+.option.selected .option__letter { color: var(--accent-deep); }
+
+.scale { padding: 24px 0 48px; }
+.scale__value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 80px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1;
+  color: var(--accent-deep);
+  margin-bottom: 8px;
+}
+.scale__caption {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 20px;
+  color: var(--ink-soft);
+  margin-bottom: 32px;
+  min-height: 28px;
+}
+.scale__slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: var(--line);
+  outline: none;
+  margin-bottom: 16px;
+}
+.scale__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.scale__slider::-moz-range-thumb {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.scale__labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.textfield { margin-bottom: 48px; }
+.textfield__input {
+  width: 100%;
+  min-height: 120px;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.25s;
+}
+.textfield__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+}
+.textfield__input::placeholder { color: var(--ink-muted); opacity: 0.6; }
+.textfield__counter {
+  text-align: right;
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-top: 8px;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  gap: 16px;
+}
+.btn {
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-weight: 500;
+}
+.btn:hover:not(:disabled) {
+  background: var(--accent-deep);
+  transform: translateY(-1px);
+}
+.btn:disabled {
+  background: var(--line);
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--bg-card);
+  color: var(--ink);
+  transform: none;
+}
+.btn--large { padding: 18px 48px; font-size: 15px; }
+
+.processing {
+  text-align: center;
+  padding: 120px 0;
+}
+.processing__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 500;
+  margin-bottom: 32px;
+}
+.processing__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.processing__dots span {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.processing__dots span:nth-child(2) { animation-delay: 0.2s; }
+.processing__dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+.processing__line {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink-muted);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.report__header { text-align: left; margin-bottom: 80px; padding-bottom: 48px; border-bottom: 1px solid var(--line); }
+.report__mark {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 24px;
+}
+.report__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(56px, 10vw, 96px);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+.report__title em { font-style: italic; color: var(--accent-deep); }
+.report__date {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink-muted);
+}
+.report__block { margin-bottom: 64px; }
+.report__block-number {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.report__block-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(32px, 5vw, 44px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 32px;
+}
+.report__block-title em { font-style: italic; color: var(--accent-deep); }
+.report__block p, .report__text {
+  font-size: 17px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+.report__block p strong, .report__text strong { color: var(--ink); font-weight: 500; }
+.report__quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--ink);
+  padding: 24px 0 24px 32px;
+  border-left: 2px solid var(--accent);
+  margin: 32px 0;
+}
+.report__quote em { color: var(--accent-deep); }
+.report__divider {
+  width: 80px;
+  height: 1px;
+  background: var(--accent);
+  margin: 64px 0;
+}
+.technique {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  padding: 32px;
+  margin: 32px 0;
+  border-radius: 2px;
+}
+.technique__label {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.technique__name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+.technique p { font-size: 16px; margin-bottom: 14px; }
+
+.final {
+  background: linear-gradient(135deg, #2B2620 0%, #3d342c 100%);
+  padding: 72px 56px;
+  border-radius: 4px;
+  margin-top: 80px;
+  position: relative;
+  overflow: hidden;
+}
+.final::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,111,71,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.final__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+.final__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(32px, 5vw, 44px);
+  font-weight: 500;
+  line-height: 1.15;
+  color: #FAF6EE;
+  margin-bottom: 16px;
+}
+.final__subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 19px;
+  color: rgba(250,246,238,0.6);
+  margin-bottom: 48px;
+  max-width: 480px;
+}
+.cta-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+.cta-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 28px;
+  background: rgba(250,246,238,0.06);
+  border: 1px solid rgba(250,246,238,0.12);
+  border-radius: 3px;
+  text-decoration: none;
+  color: #FAF6EE;
+  transition: all 0.25s;
+  cursor: pointer;
+}
+.cta-card:hover {
+  background: rgba(250,246,238,0.11);
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+.cta-card--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  padding: 28px 32px;
+}
+.cta-card--primary:hover {
+  background: var(--accent-deep);
+  border-color: var(--accent-deep);
+}
+.cta-card__icon {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 28px;
+  color: var(--accent);
+  min-width: 36px;
+  line-height: 1;
+}
+.cta-card--primary .cta-card__icon { color: rgba(250,246,238,0.7); }
+.cta-card__body { flex: 1; }
+.cta-card__number {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(250,246,238,0.45);
+  margin-bottom: 4px;
+}
+.cta-card--primary .cta-card__number { color: rgba(250,246,238,0.65); }
+.cta-card__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #FAF6EE;
+}
+.cta-card__desc {
+  font-size: 14px;
+  color: rgba(250,246,238,0.55);
+  line-height: 1.5;
+}
+.cta-card--primary .cta-card__desc { color: rgba(250,246,238,0.8); }
+.cta-card__arrow {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: rgba(250,246,238,0.4);
+  transition: all 0.25s;
+}
+.cta-card:hover .cta-card__arrow { color: var(--accent); transform: translateX(3px); }
+.cta-card--primary .cta-card__arrow { color: rgba(250,246,238,0.7); }
+.actions { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 8px; }
+.closing { margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(250,246,238,0.12); }
+.closing__text {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: rgba(250,246,238,0.5);
+  line-height: 1.5;
+}
+.closing__signature {
+  margin-top: 16px;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: rgba(250,246,238,0.25);
+}
+
+@media (max-width: 640px) {
+  .container { padding: 40px 20px 80px; }
+  .header { padding: 12px 20px; }
+  .header__logo { font-size: 16px; }
+  .progress-bar { width: 80px; }
+  .intro__meta { grid-template-columns: 1fr; gap: 16px; }
+  .final { padding: 40px 28px; }
+  .report__quote { padding-left: 20px; font-size: 20px; }
+  .technique { padding: 24px; }
+}
+
+@media print {
+  .header, .nav, .actions, .final, body::before { display: none !important; }
+  body { background: white; color: black; }
+  .container { padding: 20px; max-width: 100%; }
+  .screen { display: block !important; }
+  #screen-intro, #screen-processing, .questions-container { display: none !important; }
+  .report__block { page-break-inside: avoid; margin-bottom: 48px; }
+  .report__quote { page-break-inside: avoid; }
+  .technique { border: 1px solid #999; background: #fafafa; page-break-inside: avoid; }
+  .report__divider { margin: 40px 0; }
+}
+</style>
+</head>
+<body>
+
+<header class="header hidden" id="header">
+  <div class="header__logo">Точка сборки</div>
+  <div class="header__progress">
+    <div class="progress-bar"><div class="progress-bar__fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0 / 13</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <section class="screen active" id="screen-intro">
+    <div class="intro__mark">Самодиагностика</div>
+    <h1 class="intro__title">Точка<br><em>сборки</em></h1>
+    <p class="intro__subtitle">Вопросы, после которых ты увидишь себя точнее, чем за последний год.</p>
+    <div class="intro__divider"></div>
+    <div class="intro__body">
+      <p>Я задам тебе точечные вопросы — по пяти осям, которые определяют, где ты сейчас.</p>
+      <p>На выходе ты получишь персональный разбор: какая у тебя точка сейчас, что тебя удерживает, куда тебя на самом деле тянет — и один точный шаг, который сдвинет конструкцию.</p>
+      <p>Отвечай так, как чувствуешь. Не так, как «правильно».</p>
+    </div>
+    <div class="intro__meta">
+      <div class="intro__meta-item"><span class="label">Время</span><span class="value">7–10 минут</span></div>
+      <div class="intro__meta-item"><span class="label">Вопросов</span><span class="value">тринадцать</span></div>
+      <div class="intro__meta-item"><span class="label">Осей</span><span class="value">пять</span></div>
+    </div>
+    <div class="nav" style="margin-top: 64px;">
+      <span></span>
+      <button class="btn btn--large" onclick="startTest()">Начать</button>
+    </div>
+  </section>
+
+  <div id="questions-container"></div>
+
+  <section class="screen" id="screen-processing">
+    <div class="processing">
+      <h2 class="processing__title">Собираю твой разбор</h2>
+      <div class="processing__dots"><span></span><span></span><span></span></div>
+      <p class="processing__line">Точная диагностика требует тишины. Подожди несколько секунд.</p>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-report">
+    <div id="report-content"></div>
+  </section>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  { id: 1, axis: 'Ось 1 — Состояние', type: 'choice', text: 'Когда ты честно с собой — где ты сейчас?', hint: 'Не «как надо ответить», а как есть.',
+    options: [
+      { letter: 'A', text: 'В тихом застое: вроде всё нормально, но внутри тревога' },
+      { letter: 'B', text: 'В активной фазе: много делаю, но не уверен, что туда' },
+      { letter: 'C', text: 'На переходе: что-то заканчивается, что-то начинается' },
+      { letter: 'D', text: 'В кризисе: старое сломалось, нового нет' },
+      { letter: 'E', text: 'В подъёме: чувствую разгон, но боюсь не удержать' }
+    ]},
+  { id: 2, axis: 'Ось 1 — Состояние', type: 'scale', text: 'Насколько ты сейчас в контакте с собой?',
+    min: 1, max: 10,
+    captions: { 1: 'я не слышу себя вообще', 3: 'слышу редко, через шум', 5: 'иногда выхожу на связь', 7: 'чаще да, чем нет', 10: 'я знаю себя в этой точке' }},
+  { id: 3, axis: 'Ось 1 — Состояние', type: 'text', text: 'Когда последний раз ты чувствовал «вот это — моё»?',
+    placeholder: 'Опиши тот момент в двух-трёх предложениях. Что именно было? Что ты делал, с кем был, что почувствовал.',
+    minLength: 30 },
+  { id: 4, axis: 'Ось 2 — Энергия', type: 'choice', text: 'Что сейчас отнимает у тебя больше всего сил?',
+    options: [
+      { letter: 'A', text: 'Работа и обязательства, в которых я не вижу смысла' },
+      { letter: 'B', text: 'Отношения, в которых я играю роль' },
+      { letter: 'C', text: 'Внутренний диалог: бесконечные «надо», «должен», «правильно»' },
+      { letter: 'D', text: 'Ожидание: жду, когда наступит «то самое» время' },
+      { letter: 'E', text: 'Слишком много всего сразу — я не успеваю собрать себя' }
+    ]},
+  { id: 5, axis: 'Ось 2 — Энергия', type: 'choice', text: 'Что даёт тебе силы, когда даёт?',
+    options: [
+      { letter: 'A', text: 'Одиночество и тишина' },
+      { letter: 'B', text: 'Глубокий разговор с человеком, который видит' },
+      { letter: 'C', text: 'Творчество, дело руками, движение тела' },
+      { letter: 'D', text: 'Природа, дорога, смена обстановки' },
+      { letter: 'E', text: 'Честно — я давно не помню, что даёт силы' }
+    ]},
+  { id: 6, axis: 'Ось 3 — Блок', type: 'choice', text: 'Что тебя удерживает сильнее всего прямо сейчас?',
+    options: [
+      { letter: 'A', text: 'Я жду, когда буду готов. Но готовность не наступает' },
+      { letter: 'B', text: 'Боюсь ошибиться. Хочу гарантий, которых не бывает' },
+      { letter: 'C', text: 'Сравниваю себя с другими и проигрываю в этой гонке' },
+      { letter: 'D', text: 'Уже пробовал. Не получилось. Сил пробовать снова — нет' }
+    ]},
+  { id: 7, axis: 'Ось 3 — Блок', type: 'text', text: 'Сформулируй одной фразой, что ты говоришь себе, когда хочется сделать шаг — но не делаешь.',
+    placeholder: 'Например: «Сначала надо разобраться с Х». Или: «Не сейчас, потом». Запиши ту самую фразу, которая всегда срабатывает.',
+    minLength: 15 },
+  { id: 8, axis: 'Ось 3 — Блок', type: 'scale', text: 'Насколько ты доверяешь себе в принятии решений?',
+    min: 1, max: 10,
+    captions: { 1: 'не доверяю — постоянно перепроверяю', 3: 'доверяю в мелочах, в большом — нет', 5: 'наполовину', 7: 'в основном доверяю', 10: 'полностью' }},
+  { id: 9, axis: 'Ось 4 — Вектор', type: 'choice', text: 'Если бы ничто не держало, чего бы ты захотел в первую очередь?',
+    options: [
+      { letter: 'A', text: 'Углубиться в то, чем занимаюсь — но по-другому' },
+      { letter: 'B', text: 'Полностью сменить деятельность, рамку, окружение' },
+      { letter: 'C', text: 'Замедлиться. Долго ничего не делать. Просто быть' },
+      { letter: 'D', text: 'Сделать одно конкретное действие, которое откладываю годами' },
+      { letter: 'E', text: 'Я не знаю. Это и есть моя проблема — я разучился хотеть' }
+    ]},
+  { id: 10, axis: 'Ось 4 — Вектор', type: 'choice', text: 'Что ты на самом деле ищешь сейчас?',
+    options: [
+      { letter: 'A', text: 'Мастерство. Стать лучше в том, что делаю' },
+      { letter: 'B', text: 'Свободу. Перестать делать «как надо»' },
+      { letter: 'C', text: 'Себя. Понять, кто я без всех ролей' },
+      { letter: 'D', text: 'Точку опоры. Что-то, на что можно встать' },
+      { letter: 'E', text: 'Смысл. Зачем всё это вообще' }
+    ]},
+  { id: 11, axis: 'Ось 4 — Вектор', type: 'text', text: 'Какое одно решение, если бы ты его принял сейчас, изменило бы твою жизнь сильнее всего?',
+    placeholder: 'Не «было бы хорошо когда-нибудь». А то, что ты внутри уже знаешь, но откладываешь.',
+    minLength: 20 },
+  { id: 12, axis: 'Ось 5 — Конфигурация', type: 'choice', text: 'Если посмотреть на свою жизнь со стороны — что про неё видно?',
+    options: [
+      { letter: 'A', text: 'Внешне всё хорошо, внутри — мимо' },
+      { letter: 'B', text: 'Внешне сложно, внутри понимание, куда идти' },
+      { letter: 'C', text: 'Всё в процессе разборки и сборки одновременно' },
+      { letter: 'D', text: 'Что-то одно перестало работать, остальное держится' },
+      { letter: 'E', text: 'Я давно не смотрел со стороны. Я внутри' }
+    ]},
+  { id: 13, axis: 'Ось 5 — Конфигурация', type: 'scale', text: 'Насколько ты сейчас готов к движению?',
+    min: 1, max: 10,
+    captions: { 1: 'нет ресурса, только наблюдаю', 3: 'размышляю, но не двигаюсь', 5: 'наполовину готов', 7: 'готов, ищу точку входа', 10: 'готов прямо сейчас' }}
+];
+
+let state = { currentQuestion: 0, answers: {} };
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('tochka-sborki-state');
+    if (saved) state = JSON.parse(saved);
+  } catch(e) { resetState(); }
+}
+function saveState() {
+  try { localStorage.setItem('tochka-sborki-state', JSON.stringify(state)); } catch(e) {}
+}
+function resetState() {
+  state = { currentQuestion: 0, answers: {} };
+  try { localStorage.removeItem('tochka-sborki-state'); } catch(e) {}
+}
+
+function renderQuestions() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  QUESTIONS.forEach(q => {
+    const section = document.createElement('section');
+    section.className = 'screen';
+    section.id = `screen-q${q.id}`;
+
+    let inputHTML = '';
+    if (q.type === 'choice') {
+      inputHTML = '<div class="options">';
+      q.options.forEach(opt => {
+        inputHTML += `
+          <button class="option" data-letter="${opt.letter}" onclick="selectOption(${q.id}, '${opt.letter}', this)">
+            <span class="option__letter">${opt.letter}</span>
+            <span>${opt.text}</span>
+          </button>`;
+      });
+      inputHTML += '</div>';
+    } else if (q.type === 'scale') {
+      const captions = JSON.stringify(q.captions).replace(/"/g, '&quot;');
+      inputHTML = `
+        <div class="scale">
+          <div class="scale__value" id="scale-value-${q.id}">5</div>
+          <div class="scale__caption" id="scale-caption-${q.id}">наполовину</div>
+          <input type="range" class="scale__slider" id="scale-${q.id}" min="${q.min}" max="${q.max}" value="5"
+            data-captions="${captions}" oninput="updateScale(${q.id}, this.value)">
+          <div class="scale__labels">
+            <span>${q.min}</span>
+            <span>${q.max}</span>
+          </div>
+        </div>`;
+    } else if (q.type === 'text') {
+      inputHTML = `
+        <div class="textfield">
+          <textarea class="textfield__input" id="text-${q.id}" placeholder="${q.placeholder}"
+            oninput="updateText(${q.id}, this.value, ${q.minLength})"></textarea>
+          <div class="textfield__counter" id="counter-${q.id}">0 / ${q.minLength} символов минимум</div>
+        </div>`;
+    }
+
+    section.innerHTML = `
+      <div class="question__number">Вопрос ${q.id} из ${QUESTIONS.length}</div>
+      <div class="question__axis">${q.axis}</div>
+      <h2 class="question__text">${q.text}</h2>
+      ${q.hint ? `<p class="question__hint">${q.hint}</p>` : ''}
+      ${inputHTML}
+      <div class="nav">
+        <button class="btn btn--ghost" onclick="goBack()" ${q.id === 1 ? 'style="visibility:hidden"' : ''}>← Назад</button>
+        <button class="btn" id="next-btn-${q.id}" onclick="goNext()" disabled>Дальше →</button>
+      </div>
+    `;
+    container.appendChild(section);
+  });
+}
+
+function selectOption(qid, letter, btn) {
+  document.querySelectorAll(`#screen-q${qid} .option`).forEach(o => o.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.answers[qid] = letter;
+  saveState();
+  document.getElementById(`next-btn-${qid}`).disabled = false;
+}
+
+function updateScale(qid, val) {
+  const v = parseInt(val);
+  document.getElementById(`scale-value-${qid}`).textContent = v;
+  const slider = document.getElementById(`scale-${qid}`);
+  const captionsStr = slider.getAttribute('data-captions').replace(/&quot;/g, '"');
+  const captions = JSON.parse(captionsStr);
+  const keys = Object.keys(captions).map(Number).sort((a,b) => a-b);
+  let closest = keys[0];
+  for (const k of keys) if (Math.abs(k - v) < Math.abs(closest - v)) closest = k;
+  document.getElementById(`scale-caption-${qid}`).textContent = captions[closest] || '';
+  state.answers[qid] = v;
+  saveState();
+  document.getElementById(`next-btn-${qid}`).disabled = false;
+}
+
+function updateText(qid, val, minLen) {
+  const len = val.trim().length;
+  document.getElementById(`counter-${qid}`).textContent = `${len} / ${minLen} символов минимум`;
+  state.answers[qid] = val.trim();
+  saveState();
+  document.getElementById(`next-btn-${qid}`).disabled = len < minLen;
+}
+
+function restoreAnswer(qid) {
+  const q = QUESTIONS.find(x => x.id === qid);
+  if (!q) return;
+  const ans = state.answers[qid];
+  if (ans === undefined || ans === null || ans === '') {
+    if (q.type === 'scale') {
+      const slider = document.getElementById(`scale-${qid}`);
+      if (slider) {
+        slider.value = 5;
+        updateScale(qid, 5);
+        state.answers[qid] = undefined;
+        document.getElementById(`next-btn-${qid}`).disabled = true;
+      }
+    }
+    return;
+  }
+  if (q.type === 'choice') {
+    const btn = document.querySelector(`#screen-q${qid} .option[data-letter="${ans}"]`);
+    if (btn) {
+      btn.classList.add('selected');
+      document.getElementById(`next-btn-${qid}`).disabled = false;
+    }
+  } else if (q.type === 'scale') {
+    const slider = document.getElementById(`scale-${qid}`);
+    if (slider) { slider.value = ans; updateScale(qid, ans); }
+  } else if (q.type === 'text') {
+    const ta = document.getElementById(`text-${qid}`);
+    if (ta) { ta.value = ans; updateText(qid, ans, q.minLength); }
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress() {
+  const total = QUESTIONS.length;
+  const current = state.currentQuestion;
+  const pct = current === 0 ? 0 : current / total;
+  document.getElementById('progressFill').style.transform = `scaleX(${pct})`;
+  document.getElementById('progressText').textContent = `${current} / ${total}`;
+}
+
+function startTest() {
+  state.currentQuestion = 1;
+  saveState();
+  document.getElementById('header').classList.remove('hidden');
+  showScreen('screen-q1');
+  restoreAnswer(1);
+  updateProgress();
+}
+
+function goNext() {
+  if (state.currentQuestion < QUESTIONS.length) {
+    state.currentQuestion++;
+    saveState();
+    showScreen(`screen-q${state.currentQuestion}`);
+    restoreAnswer(state.currentQuestion);
+    updateProgress();
+  } else {
+    finishTest();
+  }
+}
+
+function goBack() {
+  if (state.currentQuestion > 1) {
+    state.currentQuestion--;
+    saveState();
+    showScreen(`screen-q${state.currentQuestion}`);
+    restoreAnswer(state.currentQuestion);
+    updateProgress();
+  }
+}
+
+function finishTest() {
+  document.getElementById('header').classList.add('hidden');
+  showScreen('screen-processing');
+  setTimeout(() => {
+    renderReport();
+    showScreen('screen-report');
+  }, 2800);
+}
+
+function getPointType(a) {
+  const q1 = a[1], q12 = a[12];
+  if (q1 === 'A' && (q12 === 'A' || q12 === 'E')) return 'quiet_stagnation';
+  if (q1 === 'B' && q12 === 'A') return 'anxious_drive';
+  if (q1 === 'C') return 'transition';
+  if (q1 === 'D') return 'crisis';
+  if (q1 === 'B' && q12 !== 'A') return 'wrong_direction';
+  if (q1 === 'E') return 'anxious_drive';
+  return 'transition';
+}
+
+function getBlockType(a) {
+  const map = { 'A': 'readiness', 'B': 'guarantee', 'C': 'time_race', 'D': 'helplessness' };
+  return map[a[6]] || 'readiness';
+}
+
+function getVector(a) {
+  const map = { 'A': 'depth', 'B': 'transformation', 'C': 'pause', 'D': 'unblock', 'E': 'self_encounter' };
+  return map[a[10]] || 'self_encounter';
+}
+
+function getTechnique(point, block, readiness) {
+  if (point === 'crisis' || readiness <= 3) return 'silence';
+  if (block === 'readiness' && readiness >= 6) return 'refusal';
+  if (block === 'guarantee') return 'leak_map';
+  if (block === 'helplessness') return 'letter';
+  if (point === 'quiet_stagnation') return 'silence';
+  if (point === 'anxious_drive') return 'leak_map';
+  if (point === 'transition') return 'future_image';
+  if (point === 'wrong_direction') return 'letter';
+  if (readiness >= 8) return 'questions';
+  return 'silence';
+}
+
+const POINT_TEXTS = {
+  quiet_stagnation: {
+    title: 'Тихий застой',
+    text: `<p>Со стороны это выглядит как «у меня всё нормально». Внутри это ощущается как болото. Ты не двигаешься, и сам факт неподвижности уже тебя выматывает. Парадокс: ты мало что делаешь, и именно это отнимает у тебя силы.</p>
+    <p>Главное в твоей точке — это не лень и не слабость воли. Это <strong>накопленное ожидание</strong>, которое ты сам не осознаёшь. Внутри тебя есть процесс, который зреет, но ты не даёшь ему пространства проявиться. Ты заполняешь время мелкими делами, отвлечениями, ритуалами — лишь бы не сидеть в тишине, где этот процесс мог бы стать слышимым.</p>
+    <p>Твоя задача сейчас — не «начать делать». Это типичная ошибка людей в твоей точке. Если ты сейчас начнёшь активно действовать, ты с большой вероятностью пойдёшь не в ту сторону. Твоя задача — <strong>создать условия для проявления того, что зреет</strong>.</p>`
+  },
+  anxious_drive: {
+    title: 'Тревожный драйв',
+    text: `<p>Ты на ходу. Ты много делаешь. Со стороны это выглядит как успех. Но внутри есть подспудная тревога, которая не отпускает: <strong>«что-то не то»</strong>. Ты не можешь точно сформулировать, что именно не так — потому что вроде всё работает, всё движется, есть результаты.</p>
+    <p>Главное в твоей точке: <strong>твоя активность опережает твоё понимание себя</strong>. Ты двигаешься быстрее, чем успеваешь осмыслить, куда. Это часто бывает у людей с высокой энергетикой — они умеют запускать процессы, но не всегда умеют останавливаться, чтобы проверить вектор.</p>
+    <p>Опасность твоей точки в том, что инерция может унести тебя ещё на год-два по этому вектору. После чего «что-то не то» превратится в полноценный кризис, который придётся разгребать. Лучше остановиться сейчас.</p>`
+  },
+  transition: {
+    title: 'Переходная фаза',
+    text: `<p>Ты на пороге. Что-то одно в тебе уже завершилось — может быть, ещё не до конца оформилось это завершение, но внутри ты уже знаешь, что туда не вернёшься. И что-то новое уже начало проступать — пока в виде ощущений, импульсов, странных мыслей, которые сначала кажутся «не серьёзными».</p>
+    <p>Главное в твоей точке: <strong>ты в зоне между</strong>. Старое больше не питает, новое ещё не сложилось. Это пугающее состояние, но это самая ценная фаза для разворота. Здесь принимаются решения, которые определяют следующие пять-семь лет.</p>
+    <p>Ошибка, которую делают люди в твоей точке — <strong>торопиться</strong>. Хочется быстрее «определиться», чтобы выйти из неопределённости. Не торопись. Переход требует своего времени. Лучше провести в нём полгода с ясностью, чем за месяц схватиться за первое попавшееся и потом ещё пять лет жить с чужим решением.</p>`
+  },
+  wrong_direction: {
+    title: 'Действие не в ту сторону',
+    text: `<p>Ты делаешь много. Ты вкладываешься. Но внутри есть <strong>растущее ощущение, что ты идёшь не по своей дороге</strong>. Это может быть профессия, отношения, образ жизни — но что-то в твоей текущей конфигурации не совпадает с тобой настоящим.</p>
+    <p>Главное в твоей точке: ты, скорее всего, в какой-то момент принял решение — может, годы назад — которое было правильным <strong>для тогдашнего тебя</strong>. Но ты вырос из него. А структура жизни вокруг продолжает воспроизводиться по старому решению.</p>
+    <p>Самое сложное здесь — не «найти новое направление». А <strong>признать, что текущее уже исчерпано</strong>. Большинство людей в твоей точке годами оттягивают это признание, потому что оно болезненно. Чем дольше оттягиваешь, тем дороже потом разворот.</p>`
+  },
+  crisis: {
+    title: 'Кризис как окно',
+    text: `<p>Ты в кризисе. Старое больше не работает — ты уже это знаешь. Нового пока нет — ты тоже это знаешь. Это самая тяжёлая точка, но и самая <strong>продуктивная для пересборки</strong>. Парадокс кризиса в том, что он одновременно разрушает и расчищает.</p>
+    <p>Главное в твоей точке: ты не должен сейчас «справиться». Ты должен <strong>пройти через</strong>. Эти процессы устроены так, что их нельзя ускорить волей. Можно только идти и проживать.</p>
+    <p>При этом кризис — это окно, которое не будет открыто долго. Через шесть-двенадцать месяцев ты выйдешь из него — и в зависимости от того, что ты в нём успеешь увидеть и сделать, твоя следующая фаза будет очень разной. Это не время бездействия. Это время <strong>точечной работы с собой</strong>.</p>`
+  }
+};
+
+const BLOCK_TEXTS = {
+  readiness: {
+    title: 'Ожидание готовности',
+    text: `<p>Твой внутренний блок звучит как <strong>«я ещё не готов»</strong>. Не хватает опыта, образования, денег, обстоятельств, ясности, поддержки. Список всегда найдётся. Пока ты ждёшь готовности, время идёт — а готовность не наступает, потому что она не приходит сама.</p>
+    <p>Правда в том, что <strong>готовность не предшествует действию, а формируется в нём</strong>. Ты не становишься готовым перед тем, как сделать. Ты становишься готовым через само действие. Все, кто двинулся, двинулись неготовыми. Это правило без исключений.</p>
+    <p>Твой блок маскируется под рациональность («я просто хочу подготовиться»), но в основе — страх. Конкретно: страх обнаружить, что ты не справишься. Пока ты не пробуешь — этот страх можно не проверять. Как только пробуешь — реальность даёт ответ. И этот ответ часто оказывается <em>не таким страшным</em>, как сам страх.</p>`
+  },
+  guarantee: {
+    title: 'Поиск гарантий',
+    text: `<p>Ты хочешь знать, что получится — <strong>прежде чем начнёшь</strong>. Это разумно звучит, но это ловушка. Жизнь не выдаёт гарантий. Любое значимое решение принимается в условиях неполной информации. Всегда. Без исключений.</p>
+    <p>Под твоим запросом на гарантии — <strong>не желание точности, а страх ошибки</strong>. Конкретно: страх, что если ошибёшься, ты сам себя за это не простишь. Поэтому ты предпочитаешь не выбирать вообще, чем выбрать неидеально.</p>
+    <p>Это блок головы, а не реальности. Реальность не требует от тебя идеальности. Это требование живёт внутри тебя. И пока оно не пересмотрено, ты будешь застревать перед каждым важным решением — пока за тебя не решат обстоятельства, время или другие люди.</p>`
+  },
+  time_race: {
+    title: 'Гонка во времени',
+    text: `<p>Ты сравниваешь себя с другими и постоянно проигрываешь в этой гонке. Кто-то моложе тебя уже добился. Кто-то твоих лет уже там, куда ты только идёшь. Этот фон сравнения <strong>разрушает твоё ощущение собственного темпа</strong>.</p>
+    <p>Правда: у каждого человека свой ритм созревания. Это не метафора, это нейробиология. Кто-то проходит свои этапы в 25, кто-то в 40, кто-то в 55. Это не значит, что один лучше другого. Это значит, что <strong>сравнение по возрасту — категориальная ошибка</strong>.</p>
+    <p>Твой блок в том, что ты живёшь не свою хронологию, а чужую. Ты пытаешься соответствовать срокам, которые тебе не принадлежат. Пока ты не выйдешь из этой логики, ты всегда будешь «опаздывать» — даже если объективно идёшь быстрее многих.</p>`
+  },
+  helplessness: {
+    title: 'Выученная беспомощность',
+    text: `<p>Ты уже пробовал. Получил результат, который не хотел. Теперь у тебя <strong>внутри стоит вывод: «у меня не получается»</strong>. Этот вывод стал фоновой настройкой, через которую ты смотришь на любую новую возможность.</p>
+    <p>Это самый тяжёлый из блоков, потому что он опирается на реальный опыт. Тебе действительно было больно. Поэтому простые советы «верь в себя» здесь не работают — они оскорбительны для боли, которая за этим стоит.</p>
+    <p>Но есть важное различие: <strong>«у меня не получилось это» ≠ «у меня не получается ничего»</strong>. Твой ум обобщил один опыт до universal закона. Это типичная защитная реакция психики — она пытается уберечь тебя от повторной боли. Но платой за эту защиту становится твоё движение в целом.</p>`
+  }
+};
+
+const VECTOR_TEXTS = {
+  depth: {
+    title: 'Углубление в своё',
+    text: `<p>Тебя тянет не вовне, а <strong>вглубь</strong>. Ты не хочешь менять направление — ты хочешь делать то же самое, но иначе. На другом уровне. Это вектор мастерства.</p>
+    <p>Внутри тебя зреет ощущение, что у того, чем ты занимаешься, есть гораздо более глубокий слой, чем тот, на котором ты сейчас работаешь. Ты чувствуешь этот слой, но пока не знаешь, как в него войти. Стандартные методы повышения квалификации тут не сработают — тебе нужен не объём знаний, а <strong>смена угла</strong>.</p>`
+  },
+  transformation: {
+    title: 'Полная пересборка',
+    text: `<p>Тебя тянет к <strong>радикальной смене</strong>. Не докрутить текущее, а собрать заново. Это пугает, потому что значит — отпустить много из того, что есть сейчас. Но импульс уже здесь, и он не уйдёт.</p>
+    <p>Важно отличить настоящий импульс к трансформации от <strong>побега</strong>. Побег — это когда хочется уйти от того, что тяжело. Трансформация — это когда хочется идти к тому, что важно. Разница тонкая, но решающая.</p>`
+  },
+  pause: {
+    title: 'Остановка',
+    text: `<p>Тебе нужна <strong>пауза</strong>. Не отпуск, не выходные — настоящая остановка. Время, в которое ты не должен ничего производить, доказывать, достигать. Просто быть. Это не про лень и не про слабость — это про восстановление контакта с собой.</p>
+    <p>В современном мире пауза — почти запретное состояние. Кажется, что если ты остановился, то ты «выпал». На самом деле без пауз невозможно понять, куда дальше. <strong>Остановка — это не отсутствие движения, это его подготовка</strong>.</p>`
+  },
+  unblock: {
+    title: 'Снятие конкретного блока',
+    text: `<p>У тебя есть <strong>одно конкретное действие</strong>, которое ты откладываешь годами. Ты знаешь, что это за действие. Не нужно искать. Оно у тебя в голове прямо сейчас, пока ты это читаешь.</p>
+    <p>Твой вектор сейчас — не разбираться со всей жизнью. А <strong>сделать вот это одно</strong>. Когда оно будет сделано, многое после него встанет на свои места само собой. Пока оно не сделано, всё остальное — фоновый шум.</p>`
+  },
+  self_encounter: {
+    title: 'Встреча с собой',
+    text: `<p>Ты ищешь <strong>не направление, а себя</strong>. Это другое. Многие путают эти два запроса: думают, что им нужно «найти своё дело», а на самом деле нужно сначала найти, кто это «своё» имеет в виду.</p>
+    <p>Ты долго жил по чужим сценариям — родительским, социальным, профессиональным. Они были не плохими. Но они были не твоими. И сейчас тебе нужно <strong>отделить себя от ролей</strong>, через которые ты привык себя определять.</p>`
+  }
+};
+
+const TECHNIQUES = {
+  silence: {
+    name: 'Практика тишины',
+    desc: `<p>Каждый день, в течение четырнадцати дней подряд, выделяй <strong>двадцать минут тишины</strong>. Без телефона, без музыки, без книги, без задач. Просто сиди или лежи. Можно с закрытыми глазами.</p>
+    <p>В первые дни будет невыносимо. Мозг будет требовать стимуляции. Это нормально. На 4–7 день начнут всплывать мысли, которых ты раньше не слышал — потому что они были заглушены шумом. <strong>Это и есть то, что зреет внутри</strong>. Слушай. Не записывай сразу, не анализируй. Слушай.</p>
+    <p>После 14 дней — запиши на бумаге одной фразой главное, что ты услышал.</p>`
+  },
+  refusal: {
+    name: 'Карта отказа',
+    desc: `<p>Возьми лист. Раздели на две колонки. Слева — «Что я делаю, потому что считаю, что должен». Справа — «Что я хотел бы делать, если бы не должен был».</p>
+    <p>Заполни обе. Не торопись. Это упражнение займёт час-два, и это нормально. <strong>Будь предельно честен в левой колонке</strong> — туда попадает то, что ты делаешь без внутреннего согласия. Не «то, что мне не нравится», а именно «то, что я делаю из долженствования».</p>
+    <p>Затем выбери из левой колонки <strong>один пункт</strong>, от которого ты можешь отказаться без катастрофы. Откажись. Не «подумай об этом» — откажись фактически. Это будет первое настоящее решение из своей позиции.</p>`
+  },
+  leak_map: {
+    name: 'Карта утечек',
+    desc: `<p>В течение семи дней веди простую запись: <strong>где и на что ушли твои силы за день</strong>. Не дела, а именно энергия. Один разговор может отнять больше сил, чем восемь часов работы. Одна мысль может высосать день. Записывай.</p>
+    <p>На восьмой день посмотри на список. Найди <strong>три главных утечки</strong>. Не пять, не десять — именно три. Это твои главные дыры в системе.</p>
+    <p>Сформулируй для каждой утечки <strong>одно конкретное действие</strong>, которое её закроет. Не «постараться меньше об этом думать», а проверяемое действие. Например: «Перестать отвечать на сообщения от X». Или: «Удалить приложение Y с телефона».</p>`
+  },
+  letter: {
+    name: 'Письмо себе через год',
+    desc: `<p>Сядь и напиши письмо <strong>себе через год</strong>. От первого лица, в настоящем времени. «Сейчас я…», «У меня…», «Я чувствую…».</p>
+    <p>Главное условие: пиши не «как я хочу, чтобы было», а как ты <strong>интуитивно чувствуешь, что будет, если ты сделаешь то, что внутри уже знаешь</strong>. Не фантазируй идеальную картинку. Пиши честно: что-то будет лучше, что-то иначе, что-то ещё трудно.</p>
+    <p>Когда закончишь, прочитай вслух. Запечатай в конверт. Открой через год. Это не магия — это <strong>фиксация внутреннего знания</strong>, к которому ты уже подошёл, но ещё не озвучил вслух.</p>`
+  },
+  future_image: {
+    name: 'Образ выхода',
+    desc: `<p>Закрой глаза. Представь себя через <strong>двенадцать месяцев</strong> — не в идеале, а в реалистичном сценарии, если ты сейчас сделаешь то, что внутри уже подсказано.</p>
+    <p>Не строй «план». Смотри <strong>картинку</strong>. Где ты? С кем? Чем занят? Как ты себя чувствуешь утром, когда просыпаешься? Что у тебя на столе? Что ты слышишь?</p>
+    <p>Затем — обратное движение. От этой картинки <strong>пройди назад во времени</strong>, по месяцам, до сегодняшнего дня. Какое <strong>первое действие</strong> отделяет тебя сейчас от этой картинки через год? Оно одно. Сделай его в ближайшие 72 часа.</p>`
+  },
+  questions: {
+    name: 'Три вопроса перед действием',
+    desc: `<p>У тебя высокая готовность. Это значит, тебе не нужны долгие практики — тебе нужен <strong>фильтр качества</strong>, чтобы не растратить эту готовность на не то.</p>
+    <p>Перед любым значимым действием в ближайшие тридцать дней задавай себе три вопроса:</p>
+    <p><strong>1.</strong> Я делаю это, потому что хочу — или потому что считаю, что должен?<br>
+    <strong>2.</strong> Если у этого действия не будет видимого результата за три месяца — я всё равно его сделаю?<br>
+    <strong>3.</strong> Через пять лет я буду рад, что это сделал?</p>
+    <p>Если хотя бы на один из вопросов честный ответ — «нет», действие <strong>откладывается</strong>. Не отменяется, а откладывается до пересмотра. Этот фильтр сэкономит тебе годы.</p>`
+  }
+};
+
+function renderReport() {
+  const a = state.answers;
+  const point = getPointType(a);
+  const block = getBlockType(a);
+  const vector = getVector(a);
+  const technique = getTechnique(point, block, a[13] || 5);
+
+  const pt = POINT_TEXTS[point];
+  const bt = BLOCK_TEXTS[block];
+  const vt = VECTOR_TEXTS[vector];
+  const tt = TECHNIQUES[technique];
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const contact = a[2] || 5;
+  const trust = a[8] || 5;
+  const readiness = a[13] || 5;
+
+  const html = `
+    <div class="report__header">
+      <div class="report__mark">Персональный разбор</div>
+      <h1 class="report__title">Твоя <em>точка сборки</em></h1>
+      <div class="report__date">${dateStr}</div>
+    </div>
+
+    <div class="report__block">
+      <div class="report__block-number">Часть первая · Где ты сейчас</div>
+      <h2 class="report__block-title">${pt.title}</h2>
+      ${pt.text}
+      <div class="report__quote">«${escapeHTML(a[3] || '')}» — <em>так ты описал момент, когда последний раз чувствовал, что это твоё. Запомни этот ориентир.</em></div>
+      <p><strong>Твой контакт с собой:</strong> ${contact} из 10. ${contact <= 4 ? 'Это значит, что прямо сейчас твоя главная задача — не действовать, а слышать.' : contact <= 7 ? 'Связь есть, но прерывистая. Её можно усилить — и без этого другие изменения будут поверхностными.' : 'Хороший уровень контакта. Опирайся на это.'}</p>
+    </div>
+
+    <div class="report__divider"></div>
+
+    <div class="report__block">
+      <div class="report__block-number">Часть вторая · Что тебя удерживает</div>
+      <h2 class="report__block-title">${bt.title}</h2>
+      ${bt.text}
+      <div class="report__quote">«${escapeHTML(a[7] || '')}» — <em>это фраза, которую ты говоришь себе, когда нужно сделать шаг. Запиши её и держи перед глазами. Узнавание её в моменте — половина работы.</em></div>
+      <p><strong>Твоё доверие к себе:</strong> ${trust} из 10. ${trust <= 4 ? 'Низкое доверие — корень многих застреваний. Это восстанавливается, но требует системной работы.' : trust <= 7 ? 'Среднее доверие. Ты доверяешь себе избирательно. Важно понять, где именно теряешь опору.' : 'Высокое доверие. Это твой ресурс.'}</p>
+    </div>
+
+    <div class="report__divider"></div>
+
+    <div class="report__block">
+      <div class="report__block-number">Часть третья · Куда тебя тянет на самом деле</div>
+      <h2 class="report__block-title">${vt.title}</h2>
+      ${vt.text}
+      <div class="report__quote">«${escapeHTML(a[11] || '')}» — <em>это решение, которое внутри ты уже принял. Осталось перевести из внутреннего знания во внешнее действие.</em></div>
+    </div>
+
+    <div class="report__divider"></div>
+
+    <div class="report__block">
+      <div class="report__block-number">Часть четвёртая · Один точный шаг</div>
+      <h2 class="report__block-title">Что делать <em>конкретно</em></h2>
+      <p>Не общие советы. Не «найди своё призвание». Один точный инструмент, подобранный под твою точку, твой блок и твою готовность (${readiness}/10).</p>
+      <div class="technique">
+        <div class="technique__label">Твоя техника</div>
+        <div class="technique__name">${tt.name}</div>
+        ${tt.desc}
+      </div>
+      <p><strong>Важно:</strong> сделай эту технику в ближайшие семь дней. Не «когда будет время» — а заложи в календарь сейчас. Эффект работы такого формата возникает только при выполнении, не при чтении.</p>
+    </div>
+
+    <div class="report__divider"></div>
+
+    <section class="final">
+      <div class="final__eyebrow">Следующий шаг</div>
+      <h2 class="final__title">Картина есть.<br>Теперь — движение.</h2>
+      <p class="final__subtitle">Разбор показал точку. Что ты с ней сделаешь — решаешь ты.</p>
+
+      <div class="cta-list">
+        <a class="cta-card cta-card--primary" href="https://t.me/viktor_wang" target="_blank" rel="noopener">
+          <div class="cta-card__icon">①</div>
+          <div class="cta-card__body">
+            <div class="cta-card__number">Самый быстрый старт</div>
+            <h3 class="cta-card__title">Запишись на разбор один на один</h3>
+            <p class="cta-card__desc">30 минут — и ты увидишь свою точку глубже, чем за год самостоятельных попыток. После сессии — конкретный шаг, а не общие советы.</p>
+          </div>
+          <span class="cta-card__arrow">→</span>
+        </a>
+        <a class="cta-card" href="https://t.me/viktor_wang" target="_blank" rel="noopener">
+          <div class="cta-card__icon">②</div>
+          <div class="cta-card__body">
+            <div class="cta-card__number">Сделай технику — напиши результат</div>
+            <h3 class="cta-card__title">Написать мне в Telegram</h3>
+            <p class="cta-card__desc">Сделай практику из четвёртой части. Напиши, что получилось — я отвечу. Это бесплатно.</p>
+          </div>
+          <span class="cta-card__arrow">→</span>
+        </a>
+        <a class="cta-card" href="https://t.me/viktor_wang" target="_blank" rel="noopener">
+          <div class="cta-card__icon">③</div>
+          <div class="cta-card__body">
+            <div class="cta-card__number">Следить за разборами</div>
+            <h3 class="cta-card__title">Подписаться на канал</h3>
+            <p class="cta-card__desc">Каждую неделю — один кейс и одна техника. Без воды.</p>
+          </div>
+          <span class="cta-card__arrow">→</span>
+        </a>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn--large" onclick="downloadPDF()" style="background:var(--accent);color:#FAF6EE;">Скачать разбор</button>
+        <button class="btn btn--ghost" onclick="restartTest()" style="border-color:rgba(250,246,238,0.2);color:rgba(250,246,238,0.5);">Пройти заново</button>
+      </div>
+
+      <div class="closing">
+        <p class="closing__text">«Точку не выбирают. Точку видят. А когда видят — её можно сдвинуть.»</p>
+        <div class="closing__signature">— Точка сборки</div>
+      </div>
+    </section>
+  `;
+
+  document.getElementById('report-content').innerHTML = html;
+}
+
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function downloadPDF() {
+  const element = document.getElementById('report-content');
+  const opt = {
+    margin: [20, 20, 20, 20],
+    filename: 'tochka-sborki.pdf',
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: {
+      scale: 1.5,
+      useCORS: true,
+      backgroundColor: '#F4EFE6',
+      logging: false,
+      windowWidth: 800
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: 'css', before: '.report__divider' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+
+function restartTest() {
+  if (confirm('Точно начать заново? Текущие ответы будут стёрты.')) {
+    resetState();
+    document.getElementById('header').classList.add('hidden');
+    showScreen('screen-intro');
+    updateProgress();
+    renderQuestions();
+    bindLastQuestion();
+  }
+}
+
+function bindLastQuestion() {
+  const lastBtn = document.getElementById(`next-btn-${QUESTIONS.length}`);
+  if (lastBtn) {
+    lastBtn.textContent = 'Получить разбор';
+    lastBtn.onclick = finishTest;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadState();
+  renderQuestions();
+  bindLastQuestion();
+  if (state.currentQuestion > 0 && state.currentQuestion <= QUESTIONS.length) {
+    document.getElementById('header').classList.remove('hidden');
+    showScreen(`screen-q${state.currentQuestion}`);
+    restoreAnswer(state.currentQuestion);
+    updateProgress();
+  } else {
+    showScreen('screen-intro');
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && state.currentQuestion > 0 && state.currentQuestion <= QUESTIONS.length) {
+    const btn = document.getElementById(`next-btn-${state.currentQuestion}`);
+    if (btn && !btn.disabled && document.activeElement.tagName !== 'TEXTAREA') {
+      btn.click();
+    }
+  }
+});
+</script>
+
+</body>
+</html>
